@@ -11,8 +11,15 @@ contract CredentialRegistry is ICredentialRegistry, AccessControl {
 
     mapping(bytes32 => mapping(address => CredentialMetadata)) public credentials;
 
-    constructor() public {
+    address internal trustedForwarder;
+
+    constructor(address _trustedForwarder) public {
+        trustedForwarder = _trustedForwarder;
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
+    }
+
+    function getTrustedForwarder() public override returns (address) {
+        return trustedForwarder;
     }
 
     function registerCredential(address issuer, address _subject, bytes32 _credentialHash, uint256 _from, uint256 _exp, bytes calldata signature) external override onlyIssuer returns (bool) {

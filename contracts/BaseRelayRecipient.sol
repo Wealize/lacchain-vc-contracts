@@ -7,21 +7,27 @@ pragma solidity ^0.6.2;
  */
 abstract contract BaseRelayRecipient{
 
-    /*
-     * Forwarder singleton we accept calls from
-     */
-    address internal trustedForwarder = 0x7a4363E55Ef04e9144a2B187ACA804631A3155B5;
-
     /**
      * return the sender of this call.
      * if the call came through our Relay Hub, return the original sender.
      * should be used in the contract anywhere instead of msg.sender
      */
     function _msgSender() internal virtual returns (address sender) {
-        bytes memory bytesSender;
-        (,bytesSender) = trustedForwarder.call(abi.encodeWithSignature("getMsgSender()"));
+        bytes memory bytesRelayHub;
+        (,bytesRelayHub) = getTrustedForwarder().call(abi.encodeWithSignature("getRelayHub()"));
 
-        if( msg.sender != trustedForwarder ) return msg.sender;
-        return abi.decode(bytesSender, (address));
+        if (msg.sender == abi.decode(bytesRelayHub, (address))){ //sender is RelayHub then return origin sender
+            bytes memory bytesSender;
+            (,bytesSender) = getTrustedForwarder().call(abi.encodeWithSignature("getMsgSender()"));
+        
+            return abi.decode(bytesSender, (address));
+        } else { //sender is not RelayHub, so it is another smart contract 
+            return msg.sender;
+        }
     }
+
+    /*
+     * Forwarder singleton we accept calls from
+     */
+    function getTrustedForwarder() public virtual returns (address);
 }

@@ -15,15 +15,27 @@ contract ClaimsVerifier is AbstractClaimsVerifier, ClaimTypes, AccessControl {
     bytes32 public constant ISSUER_ROLE = keccak256("ISSUER_ROLE");
     bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
 
-    constructor (address _registryAddress)
-    AbstractClaimsVerifier(
-        "EIP712Domain",
-        "1",
-        648529,
-        address(this),
-        _registryAddress
-    ) public {
+    address internal trustedForwarder; 
+
+    constructor(
+        address _registryAddress,
+        address _trustedForwarder 
+    )
+        public
+        AbstractClaimsVerifier(
+            "EIP712Domain",
+            "1",
+            648529,
+            address(this),
+            _registryAddress
+        )
+    {
+        trustedForwarder = _trustedForwarder;
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
+    }
+
+    function getTrustedForwarder() public override returns (address) {
+        return trustedForwarder;
     }
 
     function verifyCredential(VerifiableCredential memory vc, uint8 v, bytes32 r, bytes32 s) public view returns (bool, bool, bool, bool, bool) {
