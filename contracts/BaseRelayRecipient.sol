@@ -18,10 +18,16 @@ abstract contract BaseRelayRecipient{
      * should be used in the contract anywhere instead of msg.sender
      */
     function _msgSender() internal virtual returns (address sender) {
-        bytes memory bytesSender;
-        (,bytesSender) = trustedForwarder.call(abi.encodeWithSignature("getMsgSender()"));
+        bytes memory bytesRelayHub;
+        (,bytesRelayHub) = trustedForwarder.call(abi.encodeWithSignature("getRelayHub()"));
 
-        if( msg.sender != trustedForwarder ) return msg.sender;
-        return abi.decode(bytesSender, (address));
+        if (msg.sender == abi.decode(bytesRelayHub, (address))){ //sender is RelayHub then return origin sender
+            bytes memory bytesSender;
+            (,bytesSender) = trustedForwarder.call(abi.encodeWithSignature("getMsgSender()"));
+        
+            return abi.decode(bytesSender, (address));
+        } else { //sender is not RelayHub, so it is another smart contract 
+            return msg.sender;
+        }
     }
 }
