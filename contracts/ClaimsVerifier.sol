@@ -19,7 +19,7 @@ contract ClaimsVerifier is AbstractClaimsVerifier, ClaimTypes, AccessControl {
     AbstractClaimsVerifier(
         "EIP712Domain",
         "1",
-        648529,
+        getChainID(),
         address(this),
         _registryAddress
     ) public {
@@ -77,4 +77,11 @@ contract ClaimsVerifier is AbstractClaimsVerifier, ClaimTypes, AccessControl {
         _;
     }
 
+    function getChainID() public pure returns (uint256) {
+        uint256 id;
+        assembly {
+            id := chainid()
+        }
+        return id;
+    }
 }
